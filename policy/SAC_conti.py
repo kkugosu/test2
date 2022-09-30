@@ -45,7 +45,6 @@ class SACPolicy(BASE.BasePolicy):
             pass
         else:
             t_s = encoder(t_s)
-        t_s = self.skill_converter(t_s, index, per_one=per_one)
         with torch.no_grad():
             mean, cov, t_a = policy[index].prob(t_s)
         n_a = t_a.cpu().numpy()
@@ -58,8 +57,11 @@ class SACPolicy(BASE.BasePolicy):
         i = 0
         queue_loss = None
         policy_loss = None
-        base_queue_list.load_state_dict(upd_queue_list.state_dict())
-        base_queue_list.eval()
+        while i < self.sk_n:
+            base_queue_list[i].load_state_dict(upd_queue_list[i].state_dict())
+            base_queue_list[i].eval()
+            i = i + 1
+        i = 0
         if memory_iter != 0:
             self.m_i = memory_iter
         else:
@@ -78,7 +80,8 @@ class SACPolicy(BASE.BasePolicy):
             t_a = torch.tensor(n_a, dtype=torch.float32).to(self.device)
             t_a = self.skill_converter(t_a, sk_idx, per_one=0)
             t_r = torch.tensor(n_r, dtype=torch.float32).to(self.device)
-            t_r = self.skill_converter(t_r, sk_idx, per_one=0)
+            t_r_u = t_r.unsqueeze(-1)
+            t_r = self.skill_converter(t_r_u, sk_idx, per_one=0).squeeze()
             # policy_loss = torch.mean(torch.log(t_p_weight) - t_p_qvalue)
             # we already sampled according to policy
 
@@ -86,6 +89,8 @@ class SACPolicy(BASE.BasePolicy):
             skill_id = 0
             while skill_id < self.sk_n:
                 i = 0
+                print(skill_id)
+                print("skid")
                 while i < 10:
                     mean, cov, action = naf_list[skill_id].prob(t_p_s[skill_id])
                     with torch.no_grad():
@@ -118,16 +123,27 @@ class SACPolicy(BASE.BasePolicy):
             # print("queue_loss = ", queue_loss)
             optimizer_p.zero_grad()
             policy_loss.backward(retain_graph=True)
-            for param in policy_list.parameters():
-                param.register_hook(lambda grad: torch.nan_to_num(grad, nan=0.0))
-                param.grad.data.clamp_(-1, 1)
+            i = 0
+            while i < len(policy_list):
+                print(policy_list[0])
+                print(policy_list[1])
+                for param in policy_list[i].parameters():
+                    print("hh")
+                    print(i)
+                    print(param.grad) # no simulation in index 1 skill
+                    param.register_hook(lambda grad: torch.nan_to_num(grad, nan=0.0))
+                    param.grad.data.clamp_(-1, 1)
+                i = i + 1
             optimizer_p.step()
 
             optimizer_q.zero_grad()
             queue_loss.backward()
-            for param in upd_queue_list.parameters():
-                param.register_hook(lambda grad: torch.nan_to_num(grad, nan=0.0))
-                param.grad.data.clamp_(-1, 1)
+            i = 0
+            while i < len(upd_queue_list):
+                for param in upd_queue_list[i].parameters():
+                    param.register_hook(lambda grad: torch.nan_to_num(grad, nan=0.0))
+                    param.grad.data.clamp_(-1, 1)
+                i = i + 1
             if torch.isnan(queue_loss):
                 pass
             else:

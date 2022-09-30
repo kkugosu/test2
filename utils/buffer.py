@@ -56,7 +56,7 @@ class Memory:
                         total_num += t
                         t = 0
                         failure = failure + 1
-                        break
+
         else:
             while total_num < self.capacity - pause:
                 if index is not None:

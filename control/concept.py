@@ -3,6 +3,7 @@ from NeuralNetwork import basic_nn
 import numpy as np
 from control import BASE
 from torch import nn
+from utils import converter
 # state 81
 # encoded state 324
 # if skill = 8, encoded skill state = 2592
@@ -51,7 +52,7 @@ class Concept(BASE.BaseControl):
 
         self.upd_policy_2 = basic_nn.ValueNN(self.s_l * 4, self.s_l * 4,
                                              self.a_l ** 2 + self.a_l).to(self.device)
-        self.NAF_policy_2 = converter.NAFPolicy(self.s_l * 4, self.a_l, self.upd_policy_1)
+        self.NAF_policy_2 = converter.NAFPolicy(self.s_l * 4, self.a_l, self.upd_policy_2)
         self.upd_queue_2 = basic_nn.ValueNN((self.s_l * 4 + self.a_l), self.s_l * 4, 1).to(self.device)
         self.base_queue_2 = basic_nn.ValueNN((self.s_l * 4 + self.a_l), self.s_l * 4, 1).to(self.device)
 
@@ -86,12 +87,12 @@ class Concept(BASE.BaseControl):
         weight_decay = []
         for param in self.upd_queue_1.parameters():
             param.register_hook(lambda grad: torch.nan_to_num(grad, nan=0.0))
-            network_p.append(param)
+            network_q.append(param)
             lr.append(self.l_r)
             weight_decay.append(0.1)
         for param in self.upd_queue_2.parameters():
             param.register_hook(lambda grad: torch.nan_to_num(grad, nan=0.0))
-            network_p.append(param)
+            network_q.append(param)
             lr.append(self.l_r)
             weight_decay.append(0.1)
         self.optimizer_q = torch.optim.SGD([{'params': p, 'lr': l, 'weight_decay': d} for p, l, d in zip(network_q, lr, weight_decay)])
@@ -167,8 +168,11 @@ class Concept(BASE.BaseControl):
         while i < memory_iter:
             i = i + 1
             loss1 = self.encoder_decoder_training(self.buffer.get_dataset())
-            loss2_ary = self.policy.update(self.buffer.get_dataset(), self.policy_list, self.naf_list,
-                                           self.upd_queue_list, self.base_queue_list, self.optimizer_p, self.optimizer_q,
+
+            loss2_ary = self.policy.update(self.buffer.get_dataset(), policy_list=self.policy_list,
+                                           naf_list=self.naf_list,
+                                           upd_queue_list=self.upd_queue_list, base_queue_list=self.base_queue_list,
+                                           optimizer_p=self.optimizer_p, optimizer_q=self.optimizer_q,
                                            memory_iter=1, encoder=self.key)
 
         loss_ary = torch.cat((loss2_ary, loss1.unsqueeze(0)), -1)

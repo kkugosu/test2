@@ -39,6 +39,18 @@ class BasePolicy(metaclass=ABCMeta):
 
     def skill_converter(self, t_p_o, index, per_one):
 
+        tmp_t_p_o = torch.zeros((self.sk_n, int(len(t_p_o)/self.sk_n), len(t_p_o[0]))).to(self.device)
+
+        i = 0
+        while i < self.sk_n:
+
+            tmp_t_p_o[i] = t_p_o[int(i * len(t_p_o)/self.sk_n):int((i + 1) * len(t_p_o)/self.sk_n)]
+            i = i + 1
+        t_p_o = tmp_t_p_o
+        return t_p_o
+
+    def skill_converter_one(self, t_p_o, index, per_one):
+
         tmp_t_p_o = torch.zeros((self.sk_n, len(t_p_o)/self.sk_n, len(t_p_o[0]))).to(self.device)
 
         i = 0
