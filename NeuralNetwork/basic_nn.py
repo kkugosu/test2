@@ -1,0 +1,48 @@
+import torch
+from torch import nn
+
+
+def log_act(a):
+    out = torch.where(a > 0, torch.log(a + 1), -torch.log(-a + 1))
+    return out
+
+
+class ValueNN(nn.Module):
+
+    def __init__(self, input_size, hidden_size, output_size):
+        super(ValueNN, self).__init__()
+        self.Linear_1 = nn.Linear(input_size, hidden_size)
+        self.Linear_2 = nn.Linear(hidden_size, hidden_size)
+        self.Linear_3 = nn.Linear(hidden_size, output_size)
+        self.ELU = nn.ELU()
+
+    def forward(self, input_element):
+        output = self.Linear_1(input_element)
+        output = log_act(output)
+        output = self.Linear_2(output)
+        output = log_act(output)
+        output = self.Linear_3(output)
+        return output
+
+
+class ProbNN(nn.Module):
+
+    def __init__(self, input_size, hidden_size, output_size):
+        super(ProbNN, self).__init__()
+        # self.flatten = nn.Flatten()
+        self.linear_relu_stack = nn.Sequential(
+            nn.Linear(input_size, hidden_size),
+            nn.LeakyReLU(0.1),
+            nn.Linear(hidden_size, hidden_size),
+            nn.LeakyReLU(0.1),
+            nn.Linear(hidden_size, output_size),
+            nn.Softmax(dim=-1)
+        )
+
+    def forward(self, input_element):
+        output = self.linear_relu_stack(input_element)
+        return output
+
+
+
+
