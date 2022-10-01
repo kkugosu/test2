@@ -145,7 +145,7 @@ if __name__ == "__main__":
 
     print("num_skills?")
     print("skillnum = 10")
-    skill_num = 2
+    skill_num = 4
 
     my_converter = converter.IndexAct(env_name, ACTION_LENGTH, precision, BATCH_SIZE)
     print("encode_state = 0")

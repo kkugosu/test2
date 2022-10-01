@@ -4,6 +4,7 @@ import numpy as np
 from control import BASE
 from torch import nn
 from utils import converter
+import copy
 # state 81
 # encoded state 324
 # if skill = 8, encoded skill state = 2592
@@ -44,58 +45,61 @@ class Concept(BASE.BaseControl):
         self.key = basic_nn.ValueNN(self.s_l, self.s_l*4, self.s_l * 4).to(self.device)
         self.query = basic_nn.ValueNN(self.s_l, self.s_l*4, self.s_l * 4).to(self.device)
         self.policy_name = "SAC_conti"
-        self.upd_policy_1 = basic_nn.ValueNN(self.s_l * 4, self.s_l * 4,
-                                             self.a_l ** 2 + self.a_l).to(self.device)
-        self.NAF_policy_1 = converter.NAFPolicy(self.s_l * 4, self.a_l, self.upd_policy_1)
-        self.upd_queue_1 = basic_nn.ValueNN((self.s_l * 4 + self.a_l), self.s_l * 4, 1).to(self.device)
-        self.base_queue_1 = basic_nn.ValueNN((self.s_l * 4 + self.a_l), self.s_l * 4, 1).to(self.device)
 
-        self.upd_policy_2 = basic_nn.ValueNN(self.s_l * 4, self.s_l * 4,
-                                             self.a_l ** 2 + self.a_l).to(self.device)
-        self.NAF_policy_2 = converter.NAFPolicy(self.s_l * 4, self.a_l, self.upd_policy_2)
-        self.upd_queue_2 = basic_nn.ValueNN((self.s_l * 4 + self.a_l), self.s_l * 4, 1).to(self.device)
-        self.base_queue_2 = basic_nn.ValueNN((self.s_l * 4 + self.a_l), self.s_l * 4, 1).to(self.device)
+        self.policy_list = []
+        self.naf_list = []
+        self.upd_queue_list = []
+        self.base_queue_list = []
 
-        # state + action + skill -> reward
+        self.upd_policy = basic_nn.ValueNN(self.s_l * 4, self.s_l * 4,
+                                             self.a_l ** 2 + self.a_l).to(self.device)
+        self.upd_queue = basic_nn.ValueNN((self.s_l * 4 + self.a_l), self.s_l * 4, 1).to(self.device)
+        self.base_queue = basic_nn.ValueNN((self.s_l * 4 + self.a_l), self.s_l * 4, 1).to(self.device)
+
+        network_p = []
+        lr_p = []
+        weight_decay_p = []
+
+        network_q = []
+        lr_q = []
+        weight_decay_q = []
+
+        i = 0
+        while i < self.sk_n:
+
+            tmp_policy = copy.deepcopy(self.upd_policy)
+            for param in tmp_policy.parameters():
+                param.register_hook(lambda grad: torch.nan_to_num(grad, nan=0.0))
+                network_p.append(param)
+                lr_p.append(self.l_r)
+                weight_decay_p.append(0.1)
+            self.policy_list.append(tmp_policy)
+
+            tmp_queue = copy.deepcopy(self.upd_queue)
+            for param in tmp_queue.parameters():
+                param.register_hook(lambda grad: torch.nan_to_num(grad, nan=0.0))
+                network_q.append(param)
+                lr_q.append(self.l_r)
+                weight_decay_q.append(0.1)
+            self.upd_queue_list.append(tmp_queue)
+
+            tmp_naf_policy = converter.NAFPolicy(self.s_l * 4, self.a_l, tmp_policy)
+            self.naf_list.append(tmp_naf_policy)
+
+            tmp_base_queue = copy.deepcopy(self.base_queue)
+            self.base_queue_list.append(tmp_base_queue)
+
+            i = i + 1
+
+        self.optimizer_p = torch.optim.SGD([{'params': p, 'lr': l, 'weight_decay': d} for p, l, d in
+                                            zip(network_p, lr_p, weight_decay_p)])
+
+        self.optimizer_q = torch.optim.SGD([{'params': p, 'lr': l, 'weight_decay': d} for p, l, d in
+                                            zip(network_q, lr_q, weight_decay_q)])
+
         self.key_optimizer = torch.optim.SGD(self.key.parameters(), lr=self.l_r, weight_decay=0.1)
         self.query_optimizer = torch.optim.SGD(self.query.parameters(), lr=self.l_r, weight_decay=0.1)
         self.criterion = nn.MSELoss(reduction='mean')
-
-        self.policy_list = self.upd_policy_1, self.upd_policy_2
-        self.naf_list = self.NAF_policy_1, self.NAF_policy_2
-        self.upd_queue_list = self.upd_queue_1, self.upd_queue_2
-        self.base_queue_list = self.base_queue_1, self.base_queue_2
-
-        network_p = []
-        lr = []
-        weight_decay = []
-        for param in self.upd_policy_1.parameters():
-            param.register_hook(lambda grad: torch.nan_to_num(grad, nan=0.0))
-            network_p.append(param)
-            lr.append(self.l_r)
-            weight_decay.append(0.1)
-
-        for param in self.upd_policy_2.parameters():
-            param.register_hook(lambda grad: torch.nan_to_num(grad, nan=0.0))
-            network_p.append(param)
-            lr.append(self.l_r)
-            weight_decay.append(0.1)
-        self.optimizer_p = torch.optim.SGD([{'params': p, 'lr': l, 'weight_decay': d} for p, l, d in zip(network_p, lr, weight_decay)])
-
-        network_q = []
-        lr = []
-        weight_decay = []
-        for param in self.upd_queue_1.parameters():
-            param.register_hook(lambda grad: torch.nan_to_num(grad, nan=0.0))
-            network_q.append(param)
-            lr.append(self.l_r)
-            weight_decay.append(0.1)
-        for param in self.upd_queue_2.parameters():
-            param.register_hook(lambda grad: torch.nan_to_num(grad, nan=0.0))
-            network_q.append(param)
-            lr.append(self.l_r)
-            weight_decay.append(0.1)
-        self.optimizer_q = torch.optim.SGD([{'params': p, 'lr': l, 'weight_decay': d} for p, l, d in zip(network_q, lr, weight_decay)])
 
     def encoder_decoder_training(self, *trajectory):
         n_p_s, n_a, n_s, n_r, n_d, skill_idx = np.squeeze(trajectory)
