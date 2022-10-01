@@ -89,8 +89,6 @@ class SACPolicy(BASE.BasePolicy):
             skill_id = 0
             while skill_id < self.sk_n:
                 i = 0
-                print(skill_id)
-                print("skid")
                 while i < 10:
                     mean, cov, action = naf_list[skill_id].prob(t_p_s[skill_id])
                     with torch.no_grad():

@@ -151,7 +151,7 @@ class Concept(BASE.BaseControl):
             i = i + 1
         distance = torch.sum(distance_mat, -1)
         constant = 1e+4
-
+        print((distance - subtract.to(self.device))/100)
         return (distance - subtract.to(self.device))/100
 
     def get_performance(self):

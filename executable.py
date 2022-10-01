@@ -122,7 +122,7 @@ if __name__ == "__main__":
 
     print("memory reset time recommend 100")
     print("train iter = 100")
-    TRAIN_ITER = 200
+    TRAIN_ITER = 100
 
     print("train_iteration per memory recommend 10")
     print("memory iter = 10")

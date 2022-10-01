@@ -31,11 +31,9 @@ class Memory:
                 _index = 0
                 circular = 1
             while total_num < tot_idx*traj_l:
-
                 n_p_s = self.env.reset()
                 t = 0
                 while t < (tot_idx*traj_l) - total_num: # if pg, gain accumulate
-
                     with torch.no_grad():
                         n_a = action_f(n_p_s, policy, _index, encoder=encoder)
                     # n_s, n_r, n_i = self.env.step(n_a[_index*self.a_l:(_index+1)*self.a_l])
@@ -50,13 +48,11 @@ class Memory:
                     n_p_s = n_s
                     t = t + 1
                     if t == traj_l:
-
                         if circular == 1:
                             _index = _index + 1
                         total_num += t
-                        t = 0
                         failure = failure + 1
-
+                        break
         else:
             while total_num < self.capacity - pause:
                 if index is not None:
