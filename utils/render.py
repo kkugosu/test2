@@ -4,12 +4,13 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 class Render:
-    def __init__(self, policy, index, skill_num, env, key):
+    def __init__(self, policy, index, skill_num, env, key, naf):
         self.policy = policy
         self.index = index
         self.skill_num = skill_num
         self.env = env
         self.key = key
+        self.naf = naf
 
     def rend(self, traj=None):
         n_p_o = self.env.reset()
@@ -21,7 +22,7 @@ class Render:
         while t < self.skill_num*traj*2:
             # n_a = self.policy.action(n_p_o, self.index, per_one=1)
             print(cir)
-            n_a = self.policy.action(n_p_o, index=cir, per_one=1, encoder=self.key)
+            n_a = self.policy.action(n_p_o, self.naf, index=cir, per_one=1, encoder=self.key)
             if traj is None:
                 n_o, n_r, n_d, info = self.env.step(n_a)
             else:

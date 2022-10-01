@@ -139,17 +139,16 @@ class Concept(BASE.BaseControl):
         subtract = torch.zeros(len(n_p_s))
 
         while i < len(n_p_s):
-            if int((sk_idx[i])*traj_l + n_r[i] + 1) > int((sk_idx[i]+1)*traj_l):
-                subtract[i] = torch.tensor(1)
+            if int((sk_idx[i])*traj_l + n_r[i] + 1) >= int((sk_idx[i]+1)*traj_l):
+                subtract[i] = torch.tensor(0)
             else:
                 subtract[i] = torch.sum(distance_mat[i][int((sk_idx[i])*traj_l + n_r[i] + 1):int((sk_idx[i]+1)*traj_l)], -1)
             # n_r = time step
             i = i + 1
         distance = torch.sum(distance_mat, -1)
         constant = 1e+4
-        print("reward ouptut")
-        print((distance - subtract.to(self.device))/10)
-        return (distance - subtract.to(self.device))/10
+
+        return (distance - subtract.to(self.device))/100
 
     def get_performance(self):
         return self.buffer.get_performance()
@@ -176,7 +175,7 @@ class Concept(BASE.BaseControl):
                                            memory_iter=1, encoder=self.key)
 
         loss_ary = torch.cat((loss2_ary, loss1.unsqueeze(0)), -1)
-        return loss_ary
+        return loss_ary, self.naf_list
 
     def load_model(self, path):
 

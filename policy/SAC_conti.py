@@ -109,9 +109,10 @@ class SACPolicy(BASE.BasePolicy):
             queue_loss = 0
             while skill_id < self.sk_n:
                 t_p_qvalue = upd_queue_list[skill_id](sa_pair[skill_id]).squeeze()
-
+                print("skillid = ", skill_id)
+                print(t_p_qvalue)
                 t_qvalue = t_r[skill_id]
-
+                print(t_r[skill_id])
                 # print(t_qvalue)
                 # print(t_p_qvalue)
                 queue_loss = queue_loss + self.criterion(t_p_qvalue, t_qvalue)
@@ -125,12 +126,7 @@ class SACPolicy(BASE.BasePolicy):
             policy_loss.backward(retain_graph=True)
             i = 0
             while i < len(policy_list):
-                print(policy_list[0])
-                print(policy_list[1])
                 for param in policy_list[i].parameters():
-                    print("hh")
-                    print(i)
-                    print(param.grad) # no simulation in index 1 skill
                     param.register_hook(lambda grad: torch.nan_to_num(grad, nan=0.0))
                     param.grad.data.clamp_(-1, 1)
                 i = i + 1

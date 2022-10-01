@@ -51,7 +51,7 @@ class Train:
             print(i)
             i = i + 1
             print("traj = ", self.capacity / self.skill_num)
-            loss = self.cont.update(self.m_i, self.skill_num, self.capacity / self.skill_num)
+            loss, naf = self.cont.update(self.m_i, self.skill_num, self.capacity / self.skill_num)
             print("loss = ", loss)
             j = 0
             while j < len(loss):
@@ -62,7 +62,7 @@ class Train:
 
         self.writer.flush()
         self.writer.close()
-        return self.cont.key
+        return self.cont.key, naf
 
     def simulate(self):
         i = 0

@@ -122,7 +122,7 @@ if __name__ == "__main__":
 
     print("memory reset time recommend 100")
     print("train iter = 100")
-    TRAIN_ITER = 100
+    TRAIN_ITER = 200
 
     print("train_iteration per memory recommend 10")
     print("memory iter = 10")
@@ -196,10 +196,10 @@ if __name__ == "__main__":
     my_train = train.Train(TRAIN_ITER, MEMORY_ITER, skill_num,
                            CAPACITY, env, control, env_name, load_)
     print("pre train")
-    encoder = my_train.train_skill_simultaneously()
+    encoder, naf = my_train.train_skill_simultaneously()
     print("train")
     # index = my_train.simulate()
     print("rendering")
     # my_train.post_train(index)
-    my_rend = render.Render(policy, 0, skill_num, env, key=encoder)
+    my_rend = render.Render(policy, 0, skill_num, env, key=encoder, naf=naf)
     my_rend.rend(CAPACITY/skill_num)

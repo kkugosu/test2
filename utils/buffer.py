@@ -44,8 +44,8 @@ class Memory:
                         done = 1
                     else:
                         done = 0
-                    # self.dataset.push(n_p_s, n_a, n_s, t, done, _index)
-                    self.dataset.push(n_p_s, n_a, n_s, n_r, done, _index)
+                    self.dataset.push(n_p_s, n_a, n_s, t, done, _index)
+                    # self.dataset.push(n_p_s, n_a, n_s, n_r, done, _index)
                     # we need index.. so have to convert dataset
                     n_p_s = n_s
                     t = t + 1
