@@ -32,12 +32,13 @@ class Train:
             while j < self.t_i:
                 loss = self.cont.update(self.m_i, i, self.capacity / self.skill_num)
                 print("loss = ", loss)
-                j = 0
-                while j < len(loss):
+                k = 0
+                while k < len(loss):
                     self.writer.add_scalar("loss " + str(j), loss[j], i)
-                    j = j + 1
+                    k = k + 1
                 self.writer.add_scalar("performance", self.cont.get_performance(), i)
                 model = self.cont.save_model(self.PARAM_PATH)
+
                 j = j + 1
 
         self.writer.flush()
@@ -47,9 +48,17 @@ class Train:
         if self.load == 1:
             self.cont.load_model(self.PARAM_PATH)
         i = 0
+        if i == 0:
+            self.cont.save_model(self.PARAM_PATH + "1")
         while i < self.t_i:
             print(i)
-            i = i + 1
+            if i == 1:
+                self.cont.save_model(self.PARAM_PATH + "2")
+            if i == 2:
+                self.cont.save_model(self.PARAM_PATH + "3")
+            if i == 3:
+                self.cont.save_model(self.PARAM_PATH + "4")
+
             print("traj = ", self.capacity / self.skill_num)
             loss, naf = self.cont.update(self.m_i, self.skill_num, self.capacity / self.skill_num)
             print("loss = ", loss)
@@ -59,10 +68,10 @@ class Train:
                 j = j + 1
             self.writer.add_scalar("performance", self.cont.get_performance(), i)
             model = self.cont.save_model(self.PARAM_PATH)
-
+            i = i + 1
         self.writer.flush()
         self.writer.close()
-        return self.cont.key, naf
+        return self.cont.key, self.cont.query, naf
 
     def simulate(self):
         i = 0

@@ -4,22 +4,33 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 class Render:
-    def __init__(self, policy, index, skill_num, env, key, naf):
+    def __init__(self, control, policy, index, skill_num, env, key, naf):
         self.policy = policy
         self.index = index
         self.skill_num = skill_num
         self.env = env
         self.key = key
-        self.naf = naf
+
+        self.control = control
+        self.naf = self.control.naf_list
+
+        self.control.key.load_state_dict(torch.load("Parameter/wallplane" + "/" + "concept" + "/" + "key"))
+
+        i = 0
+        while i < len(self.control.policy_list):
+            self.control.policy_list[i].load_state_dict(torch.load("Parameter/wallplane" + "/" + "SAC_conti" + "/" + "policy" + str(i)))
+            self.control.upd_queue_list[i].load_state_dict(torch.load("Parameter/wallplane" + "/" + "SAC_conti" + "/" + "queue" + str(i)))
+            i = i + 1
+
+        assert self.naf[0].policy is self.control.policy_list[0], "as error"
 
     def rend(self, traj=None):
         n_p_o = self.env.reset()
         t = 0
-        local = 0
         total_performance = 0
         fail_time = 0
         cir = 0
-        while t < self.skill_num*traj*2:
+        while t < self.skill_num*traj:
             # n_a = self.policy.action(n_p_o, self.index, per_one=1)
             print(cir)
             n_a = self.policy.action(n_p_o, self.naf, index=cir, per_one=1, encoder=self.key)

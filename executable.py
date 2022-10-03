@@ -5,6 +5,7 @@ import gym
 from simple_env import narrow, plane, wallplane
 from utils import converter
 import torch
+import viewf
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 if __name__ == "__main__":
@@ -196,10 +197,11 @@ if __name__ == "__main__":
     my_train = train.Train(TRAIN_ITER, MEMORY_ITER, skill_num,
                            CAPACITY, env, control, env_name, load_)
     print("pre train")
-    encoder, naf = my_train.train_skill_simultaneously()
+    encoder, query, naf = my_train.train_skill_simultaneously()
     print("train")
     # index = my_train.simulate()
     print("rendering")
     # my_train.post_train(index)
-    my_rend = render.Render(policy, 0, skill_num, env, key=encoder, naf=naf)
+    viewf.view(encoder, encoder)
+    my_rend = render.Render(control, policy, 0, skill_num, env, key=encoder, naf=naf)
     my_rend.rend(CAPACITY/skill_num)

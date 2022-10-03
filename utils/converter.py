@@ -145,7 +145,7 @@ class NAFPolicy:
             normal = MultivariateNormal(mean, psd)
             return mean, psd, normal.sample()
         except ValueError:
-            normal = MultivariateNormal(mean, psd + 0.001)
+            normal = MultivariateNormal(mean, psd + 0.001*torch.eye(2).to(DEVICE))
             return mean, psd + 0.001, normal.sample()
         # psd = psd no exception occered
 

@@ -42,8 +42,8 @@ class Concept(BASE.BaseControl):
     def __init__(self, *args) -> None:
         super().__init__(*args)
         self.cont_name = "concept"
-        self.key = basic_nn.ValueNN(self.s_l, self.s_l*4, self.s_l * 4).to(self.device)
-        self.query = basic_nn.ValueNN(self.s_l, self.s_l*4, self.s_l * 4).to(self.device)
+        self.key = basic_nn.ProbNN(self.s_l, self.s_l*4, self.s_l * 4).to(self.device)
+        self.query = basic_nn.ProbNN(self.s_l, self.s_l*4, self.s_l * 4).to(self.device)
         self.policy_name = "SAC_conti"
 
         self.policy_list = []
@@ -63,11 +63,15 @@ class Concept(BASE.BaseControl):
         network_q = []
         lr_q = []
         weight_decay_q = []
-
+        ass_policy = None
+        ass_queue = None
         i = 0
         while i < self.sk_n:
 
             tmp_policy = copy.deepcopy(self.upd_policy)
+
+            assert tmp_policy is not self.upd_policy, "copy error"
+
             for param in tmp_policy.parameters():
                 param.register_hook(lambda grad: torch.nan_to_num(grad, nan=0.0))
                 network_p.append(param)
@@ -76,6 +80,8 @@ class Concept(BASE.BaseControl):
             self.policy_list.append(tmp_policy)
 
             tmp_queue = copy.deepcopy(self.upd_queue)
+            assert tmp_queue is not self.upd_queue, "copy error"
+
             for param in tmp_queue.parameters():
                 param.register_hook(lambda grad: torch.nan_to_num(grad, nan=0.0))
                 network_q.append(param)
@@ -88,8 +94,9 @@ class Concept(BASE.BaseControl):
 
             tmp_base_queue = copy.deepcopy(self.base_queue)
             self.base_queue_list.append(tmp_base_queue)
-
             i = i + 1
+        print("assertion")
+        assert self.naf_list[0].policy is self.policy_list[0], "assertion error"
 
         self.optimizer_p = torch.optim.SGD([{'params': p, 'lr': l, 'weight_decay': d} for p, l, d in
                                             zip(network_p, lr_p, weight_decay_p)])
@@ -97,7 +104,7 @@ class Concept(BASE.BaseControl):
         self.optimizer_q = torch.optim.SGD([{'params': p, 'lr': l, 'weight_decay': d} for p, l, d in
                                             zip(network_q, lr_q, weight_decay_q)])
 
-        self.key_optimizer = torch.optim.SGD(self.key.parameters(), lr=self.l_r, weight_decay=0.1)
+        self.key_optimizer = torch.optim.SGD(self.key.parameters(), lr=0, weight_decay=0.1)
         self.query_optimizer = torch.optim.SGD(self.query.parameters(), lr=self.l_r, weight_decay=0.1)
         self.criterion = nn.MSELoss(reduction='mean')
 
@@ -107,24 +114,36 @@ class Concept(BASE.BaseControl):
         t_s = torch.from_numpy(n_s).to(self.device).type(torch.float32)
         t_p_s = batch_state_converter(t_p_s)
         t_s = batch_state_converter(t_s)
-
-        base_batch_batch_matrix = self.key(t_p_s) @ torch.transpose(self.query(t_s), -1, -2)
+        # base_batch_batch_matrix = torch.sum(torch.square(self.key(t_p_s).unsqueeze(0) - self.key(t_s).unsqueeze(1)), -1)
+        base_batch_batch_matrix = torch.exp(self.key(t_s) @ torch.transpose(self.key(t_p_s), -1, -2))
+        random_array = torch.rand(len(t_p_s), 2)*800 - 400
+        random_input = batch_state_converter(random_array.to(DEVICE))
+        random_key = self.key(random_input)
+        print(random_key.size())
+        print("rsrs")
+        negative = torch.exp(self.key(t_s) @ torch.transpose(random_key, -1, -2))
+        # base_batch_batch_matrix = torch.exp(self.key(t_p_s) @ torch.transpose(self.query(t_s), -1, -2))
         diagonal = torch.from_numpy(np.arange(len(n_p_s))).unsqueeze(-1).type(torch.int64).to(self.device)
         output = torch.gather(base_batch_batch_matrix, 1, diagonal).squeeze()
-        bellow = base_batch_batch_matrix.sum(-1)
+        # bellow = base_batch_batch_matrix.sum(-1)
+        neg = negative.sum(-1)
+        print("base = ")
 
-        output = len(t_p_s)*output - bellow
+        output = len(t_p_s)*output - neg
+        print(output)
         loss = -torch.sum(output)
 
         self.key_optimizer.zero_grad()
-        self.query_optimizer.zero_grad()
+        # self.query_optimizer.zero_grad()
         loss.backward()
         for param in self.key.parameters():
             param.grad.data.clamp_(-1, 1)
+        """
         for param in self.query.parameters():
             param.grad.data.clamp_(-1, 1)
+        """
         self.key_optimizer.step()
-        self.query_optimizer.step()
+        # self.query_optimizer.step()
         return loss
 
     def reward(self, *trajectory):
@@ -137,7 +156,8 @@ class Concept(BASE.BaseControl):
 
         # distance_mat = torch.sum(torch.square(t_p_s.unsqueeze(0) - t_s.unsqueeze(1)), -1)
         with torch.no_grad():
-            distance_mat = torch.sum(torch.square(self.key(t_p_s).unsqueeze(0) - self.query(t_s).unsqueeze(1)), -1)
+            # distance_mat = torch.sum(torch.square(self.key(t_p_s).unsqueeze(0) - self.query(t_s).unsqueeze(1)), -1)
+            distance_mat = torch.sum(torch.square(self.key(t_p_s).unsqueeze(0) - self.key(t_s).unsqueeze(1)), -1)
         i = 0
         traj_l = len(n_p_s)/self.sk_n
         subtract = torch.zeros(len(n_p_s))
@@ -151,8 +171,8 @@ class Concept(BASE.BaseControl):
             i = i + 1
         distance = torch.sum(distance_mat, -1)
         constant = 1e+4
-        print((distance - subtract.to(self.device))/100)
-        return (distance - subtract.to(self.device))/100
+
+        return (distance - subtract.to(self.device))*1000
 
     def get_performance(self):
         return self.buffer.get_performance()

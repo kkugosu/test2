@@ -29,20 +29,20 @@ class ProbNN(nn.Module):
 
     def __init__(self, input_size, hidden_size, output_size):
         super(ProbNN, self).__init__()
-        # self.flatten = nn.Flatten()
-        self.linear_relu_stack = nn.Sequential(
-            nn.Linear(input_size, hidden_size),
-            nn.LeakyReLU(0.1),
-            nn.Linear(hidden_size, hidden_size),
-            nn.LeakyReLU(0.1),
-            nn.Linear(hidden_size, output_size),
-            nn.Softmax(dim=-1)
-        )
+        self.Linear_1 = nn.Linear(input_size, hidden_size)
+        self.Linear_2 = nn.Linear(hidden_size, hidden_size)
+        self.Linear_3 = nn.Linear(hidden_size, output_size)
+        self.ELU = nn.ELU()
+        self.softmax = nn.Softmax(dim=-1)
 
     def forward(self, input_element):
-        output = self.linear_relu_stack(input_element)
+        output = self.Linear_1(input_element)
+        output = log_act(output)
+        output = self.Linear_2(output)
+        output = log_act(output)
+        output = self.Linear_3(output)
+        output = self.softmax(output)
         return output
-
 
 
 
