@@ -123,7 +123,7 @@ if __name__ == "__main__":
 
     print("memory reset time recommend 100")
     print("train iter = 100")
-    TRAIN_ITER = 1000
+    TRAIN_ITER = 1
 
     print("train_iteration per memory recommend 10")
     print("memory iter = 10")
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     done_penalty = 0
 
     print("load previous model 0 or 1")
-    load_ = 0 #input("->")
+    load_ = 1 #input("->")
 
     print("num_skills?")
     print("skillnum = 10")
