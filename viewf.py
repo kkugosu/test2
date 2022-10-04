@@ -14,6 +14,8 @@ grid_x, grid_y = torch.meshgrid(x, y, indexing='ij')
 xy = torch.cat((grid_x.unsqueeze(-1), grid_y.unsqueeze(-1)), -1).to(DEVICE)
 
 out = torch.exp(-torch.sum(torch.square(xy.unsqueeze(0) - inp.unsqueeze(1).unsqueeze(1))/10000, -1))
+print("outsize")
+print(out.size())
 # out.view(-1).size()
 inp = out.reshape(-1, 81).squeeze()
 print(inp.size())
@@ -22,6 +24,6 @@ print(inp.size())
 def view(key, query):
     inp_1 = key(inp)
     inp_2 = query(inp)
-    distance_mat = torch.sum(torch.square(inp_1.unsqueeze(1) - inp_2.unsqueeze(0)), -1)[12]
+    distance_mat = torch.sum(torch.square(inp_1.unsqueeze(1) - inp_2.unsqueeze(0)), -1).reshape(25, 5, 5)[12]
     print(distance_mat)
 

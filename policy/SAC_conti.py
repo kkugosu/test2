@@ -87,7 +87,7 @@ class SACPolicy(BASE.BasePolicy):
 
             policy_loss = torch.tensor(0).to(self.device).type(torch.float32)
 
-            skill_id = 3 # seq training
+            skill_id = 0 # seq training
             while skill_id < self.sk_n:
                 i = 0
                 while i < 10:
@@ -104,7 +104,7 @@ class SACPolicy(BASE.BasePolicy):
 
             sa_pair = torch.cat((t_p_s, t_a), -1).type(torch.float32)
 
-            skill_id = 3 # seq training
+            skill_id = 0 # seq training
             queue_loss = 0
             while skill_id < self.sk_n:
                 t_p_qvalue = upd_queue_list[skill_id](sa_pair[skill_id]).squeeze()
@@ -124,7 +124,7 @@ class SACPolicy(BASE.BasePolicy):
             optimizer_p.zero_grad()
             policy_loss.backward(retain_graph=True)
 
-            i = 3 # seq training
+            i = 0 # seq training
             while i < len(policy_list):
                 for param in policy_list[i].parameters():
                     param.register_hook(lambda grad: torch.nan_to_num(grad, nan=0.0))
@@ -135,7 +135,7 @@ class SACPolicy(BASE.BasePolicy):
             optimizer_q.zero_grad()
             queue_loss.backward()
 
-            i = 3# seq training
+            i = 0# seq training
 
             while i < len(upd_queue_list):
                 for param in upd_queue_list[i].parameters():
