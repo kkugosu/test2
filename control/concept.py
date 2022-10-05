@@ -43,8 +43,8 @@ class Concept(BASE.BaseControl):
     def __init__(self, *args) -> None:
         super().__init__(*args)
         self.cont_name = "concept"
-        self.key = basic_nn.NValueNN(self.s_l, self.s_l*4, self.s_l * 4).to(self.device)
-        self.query = basic_nn.NValueNN(self.s_l, self.s_l*4, self.s_l * 4).to(self.device)
+        self.key = basic_nn.NValueNN(self.s_l, self.s_l*4, int(self.s_l/3)).to(self.device)
+        self.query = basic_nn.NValueNN(self.s_l, self.s_l*4, int(self.s_l/3)).to(self.device)
         self.policy_name = "SAC_conti"
 
         self.policy_list = []
@@ -52,10 +52,10 @@ class Concept(BASE.BaseControl):
         self.upd_queue_list = []
         self.base_queue_list = []
 
-        self.upd_policy = basic_nn.ValueNN(self.s_l * 4, self.s_l * 4,
-                                             self.a_l ** 2 + self.a_l).to(self.device)
-        self.upd_queue = basic_nn.ValueNN((self.s_l * 4 + self.a_l), self.s_l * 4, 1).to(self.device)
-        self.base_queue = basic_nn.ValueNN((self.s_l * 4 + self.a_l), self.s_l * 4, 1).to(self.device)
+        self.upd_policy = basic_nn.ValueNN(int(self.s_l/3), self.s_l * 4,
+                                           self.a_l ** 2 + self.a_l).to(self.device)
+        self.upd_queue = basic_nn.ValueNN((int(self.s_l/3) + self.a_l), self.s_l * 4, 1).to(self.device)
+        self.base_queue = basic_nn.ValueNN((int(self.s_l/3) + self.a_l), self.s_l * 4, 1).to(self.device)
 
         network_p = []
         lr_p = []

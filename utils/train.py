@@ -52,11 +52,11 @@ class Train:
             self.cont.save_model(self.PARAM_PATH + "1")
         while i < self.t_i:
             print(i)
-            if i == 1:
+            if i == 10:
                 self.cont.save_model(self.PARAM_PATH + "2")
-            if i == 2:
+            if i == 100:
                 self.cont.save_model(self.PARAM_PATH + "3")
-            if i == 3:
+            if i == 300:
                 self.cont.save_model(self.PARAM_PATH + "4")
 
             print("traj = ", self.capacity / self.skill_num)

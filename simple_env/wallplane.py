@@ -106,26 +106,19 @@ class WallPlane:
         return self.player.state - np.array([self.SCREEN_WIDTH/2, self.SCREEN_HEIGHT/2])
 
     def step(self, act):
-        x_pre_state = self.player.state[0]
-        y_pre_state = self.player.state[1]
+
         self.player.state = self.player.state + act*3
         self.player.update_rect()
         for args in self.walls_1:
             if pygame.sprite.collide_rect(self.player, args):
-                y_state = self.player.rect[1]
-                self.player.state[1] = self.player.state[1] - act[1]*3
-                if y_pre_state != y_state:
-                    act[1] = -act[1]
-                self.player.state[1] = self.player.state[1] + act[1]*3
+
+                self.player.state[1] = self.player.state[1] - act[1]*6
                 break
 
         for args in self.walls_2:
             if pygame.sprite.collide_rect(self.player, args):
-                x_state = self.player.rect[0]
-                self.player.state[0] = self.player.state[0] - act[0]*3
-                if x_pre_state != x_state:
-                    act[0] = -act[0]
-                self.player.state[0] = self.player.state[0] + act[0]*3
+
+                self.player.state[0] = self.player.state[0] - act[0]*6
                 break
                 # collide when this change
 

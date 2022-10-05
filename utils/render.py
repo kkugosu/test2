@@ -14,12 +14,12 @@ class Render:
         self.control = control
         self.naf = self.control.naf_list
 
-        self.control.key.load_state_dict(torch.load("Parameter/wallplane" + "/" + "concept" + "/" + "key"))
+        self.control.key.load_state_dict(torch.load("Parameter/wallplane1" + "/" + "concept" + "/" + "key"))
 
         i = 0
         while i < len(self.control.policy_list):
-            self.control.policy_list[i].load_state_dict(torch.load("Parameter/wallplane" + "/" + "SAC_conti" + "/" + "policy" + str(i)))
-            self.control.upd_queue_list[i].load_state_dict(torch.load("Parameter/wallplane" + "/" + "SAC_conti" + "/" + "queue" + str(i)))
+            self.control.policy_list[i].load_state_dict(torch.load("Parameter/wallplane1" + "/" + "SAC_conti" + "/" + "policy" + str(i)))
+            self.control.upd_queue_list[i].load_state_dict(torch.load("Parameter/wallplane1" + "/" + "SAC_conti" + "/" + "queue" + str(i)))
             i = i + 1
 
         assert self.naf[0].policy is self.control.policy_list[0], "as error"
