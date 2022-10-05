@@ -76,7 +76,7 @@ class Concept(BASE.BaseControl):
                 torch.nn.init.uniform_(param, -0.1, 0.1)
                 param.register_hook(lambda grad: torch.nan_to_num(grad, nan=0.0))
                 network_p.append(param)
-                lr_p.append(self.l_r)
+                lr_p.append(self.l_r*10)
                 weight_decay_p.append(0.1)
             self.policy_list.append(tmp_policy)
 
@@ -84,10 +84,10 @@ class Concept(BASE.BaseControl):
             assert tmp_queue is not self.upd_queue, "copy error"
 
             for param in tmp_queue.parameters():
-                torch.nn.init.uniform_(param, -0.1, 0.1)
+                torch.nn.init.uniform_(param, -0.2, 0.2)
                 param.register_hook(lambda grad: torch.nan_to_num(grad, nan=0.0))
                 network_q.append(param)
-                lr_q.append(self.l_r)
+                lr_q.append(self.l_r*10)
                 weight_decay_q.append(0.1)
             self.upd_queue_list.append(tmp_queue)
 
@@ -174,7 +174,7 @@ class Concept(BASE.BaseControl):
             i = i + 1
         constant = 1e+4
 
-        return (distance - subtract.to(self.device))/100
+        return (distance - subtract.to(self.device))/10
 
     def get_performance(self):
         return self.buffer.get_performance()
