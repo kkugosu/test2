@@ -107,18 +107,18 @@ class WallPlane:
 
     def step(self, act):
 
-        self.player.state = self.player.state + act*3
+        self.player.state = self.player.state + act*10
         self.player.update_rect()
         for args in self.walls_1:
             if pygame.sprite.collide_rect(self.player, args):
 
-                self.player.state[1] = self.player.state[1] - act[1]*6
+                self.player.state[1] = self.player.state[1] - act[1]*20
                 break
 
         for args in self.walls_2:
             if pygame.sprite.collide_rect(self.player, args):
 
-                self.player.state[0] = self.player.state[0] - act[0]*6
+                self.player.state[0] = self.player.state[0] - act[0]*20
                 break
                 # collide when this change
 
