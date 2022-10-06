@@ -118,7 +118,7 @@ if __name__ == "__main__":
     print("enter memory capacity recommend 1000")
     print("batchsize = capacity")
     print("capacity = 1000")
-    CAPACITY = 800 # get_integer()
+    CAPACITY = 1000 # get_integer()
     BATCH_SIZE = CAPACITY
 
     print("memory reset time recommend 100")
@@ -146,7 +146,7 @@ if __name__ == "__main__":
 
     print("num_skills?")
     print("skillnum = 10")
-    skill_num = 8
+    skill_num = 20
 
     my_converter = converter.IndexAct(env_name, ACTION_LENGTH, precision, BATCH_SIZE)
     print("encode_state = 0")
