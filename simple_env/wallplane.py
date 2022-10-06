@@ -76,8 +76,8 @@ class WallPlane:
         self.big_wall3 = Wall(0, 0, 20, 800)
         self.big_wall4 = Wall(780, 0, 20, 800)
         self.wall_1 = Wall(300, 200, 20, 120)
-        self.wall_2 = Wall(500, 100, 20, 200)
-        self.wall_4 = Wall(600, 100, 20, 200)
+        self.wall_2 = Wall(500, 100, 20, 220)
+        self.wall_4 = Wall(600, 100, 20, 220)
         self.wall_7 = Wall(500, 500, 20, 200)
         self.wall_8 = Wall(600, 600, 20, 200)
 
