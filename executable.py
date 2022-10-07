@@ -89,13 +89,13 @@ if __name__ == "__main__":
     if env_name == "cart":
         ACTION_LENGTH = 2
         A_index_L = 2
-    if env_name == "plane":
+    elif env_name == "plane":
         ACTION_LENGTH = 2
         A_index_L = 2
-    if env_name == "narrow":
+    elif env_name == "narrow":
         ACTION_LENGTH = 2
         A_index_L = 2
-    if env_name == "wallplane":
+    elif env_name == "wallplane":
         ACTION_LENGTH = 2
         A_index_L = 2
     else:
